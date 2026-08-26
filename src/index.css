@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-obsidian-950: #0A0A0B;
+  --color-obsidian-900: #111113;
+  --color-obsidian-800: #1A1A1D;
+  --color-obsidian-700: #23232A;
+  --color-gold: #FACC15;
+  --color-gold-hover: #EAB308;
+  --color-gold-soft: rgba(250, 204, 21, 0.1);
+  --color-ivory: #F8FAFC;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+}
+
+html {
+  background-color: #0A0A0B;
+}
+
+body {
+  background-color: #0A0A0B;
+  color: #ffffff;
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
