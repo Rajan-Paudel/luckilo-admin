@@ -111,7 +111,7 @@ Password: ${creds.password}`;
 
   return (
     <>
-      <main className="px-6 py-8 md:py-12">
+      <main className="py-4">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loader2 size={24} className="animate-spin text-gold" />
@@ -267,7 +267,7 @@ Password: ${creds.password}`;
       {creds && (
         <div className="fixed inset-0 z-50 bg-obsidian-950/95 backdrop-blur-xl flex items-center justify-center">
           <div className="bg-obsidian-900 border border-gold/20 p-6 w-full max-w-md text-center">
-            <div className="w-14 h-14 rounded-full bg-green-400/10 flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 bg-green-400/10 flex items-center justify-center mx-auto mb-4">
               <Check size={28} className="text-green-400" />
             </div>
             <h2 className="text-lg text-white font-medium mb-1">Admin Created</h2>
@@ -307,7 +307,7 @@ Password: ${creds.password}`;
         <div className="fixed inset-0 z-50 bg-obsidian-950/95 backdrop-blur-xl flex items-center justify-center">
           <div className="bg-obsidian-900 border border-white/8 p-6 w-full max-w-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-yellow-400/10 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-yellow-400/10 flex items-center justify-center shrink-0">
                 <AlertTriangle size={20} className="text-yellow-400" />
               </div>
               <div>

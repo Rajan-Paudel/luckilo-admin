@@ -9,6 +9,10 @@ import UsersPage from "./pages/UsersPage";
 import AdminsPage from "./pages/AdminsPage";
 import GroupsPage from "./pages/GroupsPage";
 import PayoutsPage from "./pages/PayoutsPage";
+import PaymentTestModePage from "./pages/PaymentTestModePage";
+
+const hasPrivilege = (auth, privilege) =>
+  (auth?.privileges ?? "").includes(privilege);
 
 function App() {
   const { auth } = useSelector((state) => state.auth);
@@ -23,38 +27,68 @@ function App() {
   if (hasInitialized) {
     return (
       <BrowserRouter>
-        <AdminLayout>
-          <Routes>
-            <Route
-              path="/login"
-              element={auth ? <Navigate to="/milestones" replace /> : <Login />}
-            />
-            <Route
-              path="/"
-              element={<Navigate to="/milestones" replace />}
-            />
-            <Route
-              path="/milestones"
-              element={auth ? <MilestonesPage /> : <Navigate to="/login" replace />}
-            />
+        <Routes>
+          <Route
+            path="/login"
+            element={auth ? <Navigate to="/users" replace /> : <Login />}
+          />
+          <Route
+            path="/"
+            element={
+              <AdminLayout>
+                <Navigate to="/users" replace />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/milestones"
+            element={
+              <AdminLayout>
+                {auth && hasPrivilege(auth, "video-verification") ? <MilestonesPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
+          />
           <Route
             path="/users"
-            element={auth ? <UsersPage /> : <Navigate to="/login" replace />}
+            element={
+              <AdminLayout>
+                {auth ? <UsersPage /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
           />
           <Route
             path="/admins"
-            element={auth ? <AdminsPage /> : <Navigate to="/login" replace />}
+            element={
+              <AdminLayout>
+                {auth && hasPrivilege(auth, "admin-creation") ? <AdminsPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
           />
           <Route
             path="/groups"
-            element={auth ? <GroupsPage /> : <Navigate to="/login" replace />}
+            element={
+              <AdminLayout>
+                {auth && hasPrivilege(auth, "support") ? <GroupsPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
           />
           <Route
             path="/payouts"
-            element={auth ? <PayoutsPage /> : <Navigate to="/login" replace />}
+            element={
+              <AdminLayout>
+                {auth && hasPrivilege(auth, "finance") ? <PayoutsPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
           />
-          </Routes>
-        </AdminLayout>
+          <Route
+            path="/payment-test-mode"
+            element={
+              <AdminLayout>
+                {auth && hasPrivilege(auth, "admin-creation") ? <PaymentTestModePage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     );
   }

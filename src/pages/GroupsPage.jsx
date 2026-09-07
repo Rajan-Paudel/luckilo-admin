@@ -1,13 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchGroups } from "../redux/slice/dataSlice";
 import useApiCall from "../hooks/useApiCall";
 import { serverBaseURL } from "../utils/siteconfig";
+import Cropper from "react-easy-crop";
 import {
-  MessageCircle, Loader2, Plus, X, AlertTriangle, Trash2, Save
+  MessageCircle, Loader2, Plus, X, AlertTriangle, Trash2, Save, Check
 } from "lucide-react";
 
 const GENDER_OPTIONS = ["Any", "Male", "Female"];
+
+const getCroppedImg = (imageSrc, pixelCrop) => {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = pixelCrop.width;
+      canvas.height = pixelCrop.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        pixelCrop.width,
+        pixelCrop.height
+      );
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error("Canvas toBlob failed"));
+        resolve(blob);
+      }, "image/jpeg", 0.9);
+    };
+    image.onerror = reject;
+    image.src = imageSrc;
+  });
+};
 
 const GroupsPage = () => {
   const dispatch = useDispatch();
@@ -20,8 +51,12 @@ const GroupsPage = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
+  const [croppedBlob, setCroppedBlob] = useState(null);
+  const [cropperImage, setCropperImage] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [cropAreaPixels, setCropAreaPixels] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -46,38 +81,43 @@ const GroupsPage = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
+    reader.onloadend = () => {
+      setCropperImage(reader.result);
+      setShowCropper(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
     reader.readAsDataURL(file);
+  };
 
-    setUploading(true);
-    setUploadError("");
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCropAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropConfirm = async () => {
+    if (!cropperImage || !cropAreaPixels) return;
     try {
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
-
-      const token = localStorage.getItem("auth");
-      const response = await fetch(`${serverBaseURL}/api/upload/group-avatar`, {
-        method: "POST",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: uploadFormData,
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.error || `Image upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setForm((prev) => ({ ...prev, avatarUrl: data.url }));
-      setImagePreview(data.url);
+      const blob = await getCroppedImg(cropperImage, cropAreaPixels);
+      const previewUrl = URL.createObjectURL(blob);
+      setCroppedBlob(blob);
+      setImagePreview(previewUrl);
+      setForm((prev) => ({ ...prev, avatarUrl: "" }));
+      setShowCropper(false);
+      setCropperImage(null);
     } catch (err) {
-      setUploadError(err.message);
-    } finally {
-      setUploading(false);
+      console.error("Crop failed:", err);
     }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperImage(null);
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setCroppedBlob(null);
+    setForm((prev) => ({ ...prev, avatarUrl: "" }));
   };
 
   const resetForm = () => {
@@ -93,7 +133,7 @@ const GroupsPage = () => {
       sortOrder: 10,
     });
     setImagePreview(null);
-    setUploadError("");
+    setCroppedBlob(null);
     setEditingId(null);
   };
 
@@ -115,7 +155,7 @@ const GroupsPage = () => {
       sortOrder: g.sortOrder,
     });
     setImagePreview(g.avatarUrl || null);
-    setUploadError("");
+    setCroppedBlob(null);
     setEditingId(g.id);
     setShowCreate(true);
   };
@@ -125,10 +165,35 @@ const GroupsPage = () => {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
+      let avatarUrl = form.avatarUrl.trim() || null;
+
+      if (croppedBlob) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", croppedBlob, "avatar.jpg");
+
+        const token = localStorage.getItem("auth");
+        const response = await fetch(`${serverBaseURL}/api/upload/group-avatar`, {
+          method: "POST",
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: uploadFormData,
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          throw new Error(errData?.error || `Image upload failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        avatarUrl = data.url;
+      }
+
       const body = {
         name: form.name.trim(),
         description: form.description.trim() || null,
-        avatarUrl: form.avatarUrl.trim() || null,
+        avatarUrl,
         genderRestriction: form.genderRestriction,
         minAge: form.minAge ? parseInt(form.minAge) : null,
         maxAge: form.maxAge ? parseInt(form.maxAge) : null,
@@ -169,7 +234,7 @@ const GroupsPage = () => {
 
   return (
     <>
-      <main className="px-6 py-8 md:py-12">
+      <main className="py-4">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loader2 size={24} className="animate-spin text-gold" />
@@ -213,10 +278,10 @@ const GroupsPage = () => {
                             <img
                               src={g.avatarUrl}
                               alt=""
-                              className="w-8 h-8 rounded-full object-cover"
+                              className="w-8 h-8 object-cover"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-obsidian-800 flex items-center justify-center">
+                            <div className="w-8 h-8 bg-obsidian-800 flex items-center justify-center">
                               <span className="text-xs text-white/30 font-medium">{g.name?.charAt(0)?.toUpperCase() || "?"}</span>
                             </div>
                           )}
@@ -333,19 +398,25 @@ const GroupsPage = () => {
                     htmlFor="groupAvatarInput"
                     className="cursor-pointer bg-obsidian-950 border border-white/10 text-white/60 px-4 py-3 text-xs hover:border-white/30 transition-colors"
                   >
-                    {uploading ? "Uploading..." : "Choose Image"}
+                    Choose Image
                   </label>
                   {(imagePreview || form.avatarUrl) && (
-                    <img
-                      src={imagePreview || form.avatarUrl}
-                      alt="Preview"
-                      className="w-10 h-10 rounded-full object-cover border border-white/10"
-                    />
+                    <div className="relative">
+                      <img
+                        src={imagePreview || form.avatarUrl}
+                        alt="Preview"
+                        className="w-10 h-10 object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
                   )}
                 </div>
-                {uploadError && (
-                  <p className="mt-2 text-xs text-red-400">{uploadError}</p>
-                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -449,11 +520,74 @@ const GroupsPage = () => {
         </div>
       )}
 
+      {showCropper && (
+        <div className="fixed inset-0 z-[60] bg-obsidian-950/95 backdrop-blur-xl flex items-center justify-center">
+          <div className="bg-obsidian-900 border border-white/8 p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg text-white font-medium">Crop Image</h2>
+              <button
+                onClick={handleCropCancel}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="relative w-full aspect-square bg-obsidian-950 overflow-hidden">
+              <Cropper
+                image={cropperImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                cropShape="rect"
+                showGrid={false}
+                style={{
+                  containerStyle: { borderRadius: "0" },
+                  cropAreaStyle: { border: "2px solid rgba(212, 175, 55, 0.6)" },
+                }}
+              />
+            </div>
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-white/40 shrink-0">Zoom</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="flex-1 accent-gold"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCropCancel}
+                  className="flex-1 bg-white/5 text-white/60 py-3 text-sm hover:bg-white/10 transition-colors border border-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCropConfirm}
+                  className="flex-1 bg-gold text-obsidian-950 py-3 text-sm font-medium hover:bg-gold-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  <Check size={16} /> Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmDelete && (
         <div className="fixed inset-0 z-50 bg-obsidian-950/95 backdrop-blur-xl flex items-center justify-center">
           <div className="bg-obsidian-900 border border-white/8 p-6 w-full max-w-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-400/10 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-red-400/10 flex items-center justify-center shrink-0">
                 <AlertTriangle size={20} className="text-red-400" />
               </div>
               <div>

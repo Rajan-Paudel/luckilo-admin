@@ -99,7 +99,7 @@ const MilestonesPage = () => {
 
   return (
     <>
-      <main className="px-6 py-8 md:py-12">
+      <main className="py-4">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loader2 size={24} className="animate-spin text-gold" />
@@ -275,24 +275,69 @@ const MilestonesPage = () => {
                           </div>
                         </div>
 
-                        {(m.status === "START_VERIFICATION_SUBMITTED" && m.startVideoUrl) || (m.status === "END_VERIFICATION_SUBMITTED" && m.endVideoUrl) ? (
-                          <div
-                            className="shrink-0 cursor-pointer group"
-                            onClick={() => setFullscreenVideo({
-                              url: m.status === "START_VERIFICATION_SUBMITTED" ? m.startVideoUrl : m.endVideoUrl,
-                              name: m.userName,
-                              type: m.status.includes("START") ? "Start" : "End"
-                            })}
-                          >
-                            <div className="w-40 h-24 bg-obsidian-950 border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-gold/40 transition-colors relative">
-                              <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/60 to-transparent" />
-                              <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center group-hover:bg-gold/30 transition-colors z-10">
-                                <Maximize2 size={18} className="text-gold" />
+                        {((m.status === "START_VERIFICATION_SUBMITTED" && m.startVideoUrl) ||
+                          (m.status === "END_VERIFICATION_SUBMITTED" && m.endVideoUrl)) ? (
+                          <div className="flex items-start gap-3 shrink-0">
+                            {m.status === "END_VERIFICATION_SUBMITTED" && m.startVideoUrl && (
+                              <div
+                                className="cursor-pointer group"
+                                onClick={() => setFullscreenVideo({
+                                  url: m.startVideoUrl,
+                                  name: m.userName,
+                                  type: "Start"
+                                })}
+                              >
+                                <div className="w-40 h-24 bg-obsidian-950 border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-gold/40 transition-colors relative">
+                                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/60 to-transparent" />
+                                  <div className="w-10 h-10 bg-gold/20 flex items-center justify-center group-hover:bg-gold/30 transition-colors z-10">
+                                    <Maximize2 size={18} className="text-gold" />
+                                  </div>
+                                  <div className="absolute bottom-2 left-2 text-xs text-white/40 z-10">
+                                    Start Video
+                                  </div>
+                                </div>
                               </div>
-                              <div className="absolute bottom-2 left-2 text-xs text-white/40 z-10">
-                                {m.status.includes("START") ? "Start" : "End"} Video
+                            )}
+                            {m.status === "END_VERIFICATION_SUBMITTED" && m.endVideoUrl && (
+                              <div
+                                className="cursor-pointer group"
+                                onClick={() => setFullscreenVideo({
+                                  url: m.endVideoUrl,
+                                  name: m.userName,
+                                  type: "End"
+                                })}
+                              >
+                                <div className="w-40 h-24 bg-obsidian-950 border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-gold/40 transition-colors relative">
+                                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/60 to-transparent" />
+                                  <div className="w-10 h-10 bg-gold/20 flex items-center justify-center group-hover:bg-gold/30 transition-colors z-10">
+                                    <Maximize2 size={18} className="text-gold" />
+                                  </div>
+                                  <div className="absolute bottom-2 left-2 text-xs text-white/40 z-10">
+                                    End Video
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            )}
+                            {m.status === "START_VERIFICATION_SUBMITTED" && m.startVideoUrl && (
+                              <div
+                                className="cursor-pointer group"
+                                onClick={() => setFullscreenVideo({
+                                  url: m.startVideoUrl,
+                                  name: m.userName,
+                                  type: "Start"
+                                })}
+                              >
+                                <div className="w-40 h-24 bg-obsidian-950 border border-white/10 overflow-hidden flex items-center justify-center group-hover:border-gold/40 transition-colors relative">
+                                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/60 to-transparent" />
+                                  <div className="w-10 h-10 bg-gold/20 flex items-center justify-center group-hover:bg-gold/30 transition-colors z-10">
+                                    <Maximize2 size={18} className="text-gold" />
+                                  </div>
+                                  <div className="absolute bottom-2 left-2 text-xs text-white/40 z-10">
+                                    Start Video
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : null}
                       </div>

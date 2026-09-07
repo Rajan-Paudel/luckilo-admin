@@ -1,7 +1,7 @@
-const URls = [
-  "https://luckilo-server.azurewebsites.net", // Production
-  "http://localhost:5131", // Local dev
-  "https://oscillatory-matias-pseudobaptismal.ngrok-free.dev"
+const URLS = [
+  'https://luckilo-backend.azurewebsites.net',
+  'http://localhost:5131',
+  'https://oscillatory-matias-pseudobaptismal.ngrok-free.dev'
 ];
 
-export const serverBaseURL = URls[1];
+export const serverBaseURL = URLS[0];

@@ -1,18 +1,14 @@
-import { useLocation } from "react-router-dom";
-import AdminHeader from "./components/AdminHeader";
-import AdminFooter from "./components/AdminFooter";
+import AdminSidebar from "./components/AdminSidebar";
 
 const AdminLayout = ({ children }) => {
-  const location = useLocation();
-  const isLoginPage = location.pathname === "/login";
-
   return (
-    <div className="min-h-screen bg-obsidian-950">
-      {!isLoginPage && <AdminHeader />}
-      <div className="min-h-[90vh] max-w-7xl w-full mx-auto">
-      {children}
+    <div className="flex min-h-screen bg-obsidian-950">
+      <AdminSidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="w-full max-w-7xl mx-auto px-6">
+          {children}
+        </div>
       </div>
-      {!isLoginPage && <AdminFooter />}
     </div>
   );
 };

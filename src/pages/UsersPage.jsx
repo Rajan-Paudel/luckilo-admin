@@ -22,7 +22,7 @@ const UsersPage = () => {
   };
 
   return (
-      <main className="px-6 py-8 md:py-12">
+      <main className="py-4">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loader2 size={24} className="animate-spin text-gold" />

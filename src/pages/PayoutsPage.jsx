@@ -60,7 +60,7 @@ const PayoutsPage = () => {
   };
 
   return (
-    <main className="px-6 py-8 md:py-12">
+    <main className="py-4">
       <section className="mb-8 grid grid-cols-2 md:grid-cols-5 gap-px bg-white/5 border border-white/8">
         <div className="bg-obsidian-900 p-6">
           <div className="text-xs uppercase tracking-[0.25em] text-green-400/80 mb-2">
