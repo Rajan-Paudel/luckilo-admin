@@ -42,17 +42,25 @@ export const fetchPayouts = createAsyncThunk("data/fetchPayouts", async () => {
   return res.json();
 });
 
+export const fetchReferrals = createAsyncThunk("data/fetchReferrals", async () => {
+  const res = await fetch(`${BASE_URL}admin/referrals`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Failed to fetch referrals");
+  return res.json();
+});
+
 const initialState = {
   users: [],
   milestones: [],
   admins: [],
   groups: [],
   payouts: [],
+  referrals: [],
   usersFetched: false,
   milestonesFetched: false,
   adminsFetched: false,
   groupsFetched: false,
   payoutsFetched: false,
+  referralsFetched: false,
   loading: false,
   error: null,
 };
@@ -67,11 +75,13 @@ const dataSlice = createSlice({
       state.admins = [];
       state.groups = [];
       state.payouts = [];
+      state.referrals = [];
       state.usersFetched = false;
       state.milestonesFetched = false;
       state.adminsFetched = false;
       state.groupsFetched = false;
       state.payoutsFetched = false;
+      state.referralsFetched = false;
       state.error = null;
     },
   },
@@ -139,6 +149,19 @@ const dataSlice = createSlice({
         state.payoutsFetched = true;
       })
       .addCase(fetchPayouts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchReferrals.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReferrals.fulfilled, (state, action) => {
+        state.loading = false;
+        state.referrals = action.payload || [];
+        state.referralsFetched = true;
+      })
+      .addCase(fetchReferrals.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

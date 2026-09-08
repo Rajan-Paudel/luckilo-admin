@@ -16,6 +16,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Award,
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import useApiCall from "../hooks/useApiCall";
@@ -85,6 +86,12 @@ const AdminSidebar = () => {
       path: "/payouts",
       icon: DollarSign,
       show: hasFinance,
+    },
+    {
+      label: "Affiliates",
+      path: "/affiliates",
+      icon: Award,
+      show: hasFinance || hasAdminCreation,
     },
     {
       label: "Test Mode",

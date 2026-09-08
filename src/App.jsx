@@ -9,6 +9,7 @@ import UsersPage from "./pages/UsersPage";
 import AdminsPage from "./pages/AdminsPage";
 import GroupsPage from "./pages/GroupsPage";
 import PayoutsPage from "./pages/PayoutsPage";
+import AffiliatesPage from "./pages/AffiliatesPage";
 import PaymentTestModePage from "./pages/PaymentTestModePage";
 
 const hasPrivilege = (auth, privilege) =>
@@ -77,6 +78,14 @@ function App() {
             element={
               <AdminLayout>
                 {auth && hasPrivilege(auth, "finance") ? <PayoutsPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/affiliates"
+            element={
+              <AdminLayout>
+                {auth && (hasPrivilege(auth, "finance") || hasPrivilege(auth, "admin-creation")) ? <AffiliatesPage /> : auth ? <Navigate to="/users" replace /> : <Navigate to="/login" replace />}
               </AdminLayout>
             }
           />

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import useApiCall from "../hooks/useApiCall";
 import {
-  FlaskConical, Loader2, Plus, X, AlertCircle, CheckCircle, Info
+  FlaskConical, Loader2, X, AlertCircle, CheckCircle, Info
 } from "lucide-react";
+import UserSearchSelect from "../components/UserSearchSelect";
 
 const PaymentTestModePage = () => {
   const apiCall = useApiCall();
@@ -10,7 +11,6 @@ const PaymentTestModePage = () => {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -37,16 +37,14 @@ const PaymentTestModePage = () => {
 
   const normalize = (email) => (email || "").trim().toLowerCase();
 
-  const handleAdd = (e) => {
-    e.preventDefault();
-    const email = normalize(newEmail);
+  const handleAddUser = (user) => {
+    const email = normalize(user.email);
     if (!email) return;
     if (emails.includes(email)) {
       setError("Email is already in the list");
       return;
     }
     setEmails((prev) => [...prev, email]);
-    setNewEmail("");
     setError("");
     setDirty(true);
   };
@@ -102,22 +100,13 @@ const PaymentTestModePage = () => {
         </div>
       )}
 
-      <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3 mb-6">
-        <input
-          type="email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-          className="flex-1 bg-obsidian-900 border border-white/10 text-white px-4 py-3 text-sm outline-none focus:border-gold/50"
-          placeholder="user@example.com"
-        />
-        <button
-          type="submit"
-          className="flex items-center justify-center gap-2 bg-gold text-obsidian-950 px-5 py-3 text-sm font-medium hover:bg-gold-hover transition-colors"
-        >
-          <Plus size={16} />
-          Add Email
-        </button>
-      </form>
+      {/* User Search & Validation Input */}
+      <UserSearchSelect
+        onAddUser={handleAddUser}
+        existingEmails={emails}
+        placeholder="Search registered user by name or email for test mode..."
+        buttonLabel="Add to Test Mode"
+      />
 
       <div className="bg-obsidian-900 border border-white/8 overflow-hidden">
         {loading ? (
@@ -137,11 +126,12 @@ const PaymentTestModePage = () => {
                     key={email}
                     className="flex items-center justify-between px-6 py-4 hover:bg-white/[0.02]"
                   >
-                    <span className="text-sm text-white">{email}</span>
+                    <span className="text-sm text-white font-mono">{email}</span>
                     <button
                       onClick={() => handleRemove(email)}
-                      className="text-white/40 hover:text-red-400 transition-colors"
+                      className="text-white/40 hover:text-red-400 transition-colors p-1"
                       aria-label={`Remove ${email}`}
+                      title="Remove from test mode"
                     >
                       <X size={18} />
                     </button>
@@ -153,7 +143,14 @@ const PaymentTestModePage = () => {
         )}
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex items-center justify-between">
+        <div className="text-xs text-white/40">
+          {dirty ? (
+            <span className="text-yellow-400">● Unsaved changes</span>
+          ) : (
+            <span>All changes saved to Azure Blob</span>
+          )}
+        </div>
         <button
           onClick={handleSave}
           disabled={saving || loading || !dirty}
